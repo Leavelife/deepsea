@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import gsap from "gsap";
+import { IoCartOutline } from "react-icons/io5";
+import { CgProfile } from "react-icons/cg";
+
 
 export default function Navbar({ serverSession }) {
 
@@ -100,10 +103,11 @@ export default function Navbar({ serverSession }) {
           <Link href="/" className="font-semibold text-xl">DeepSea</Link>
           <div className="nav-link hidden md:block">
             <ul className="flex items-center gap-8 mr-5 font-semibold">
-              <li>Product</li>
-              <li>About Deepsea</li>
-              <li>Sustainability</li>
-              <li>Contact Me</li>
+              <li><Link href={"/product"}>Product</Link></li>
+              <li><Link href={"/about"}>About Deepsea</Link></li>
+              <li><Link href={"/sustainability"}>Sustainability</Link></li>
+              <li><Link href={"/contact"}>Contact Me</Link></li>
+              <li className="text-xl"><Link href="/cart"><IoCartOutline /></Link></li>
             </ul>
           </div>
           <button
@@ -120,7 +124,7 @@ export default function Navbar({ serverSession }) {
           <span className="text-sm text-white animate-pulse">Loading...</span>
         </div>
         <div ref={overlayRef} onClick={() => setIsMenuOpen(false)} className="fixed inset-0 bg-black/40 opacity-0 pointer-events-none md:hidden"></div>
-        <aside ref={sidebarRef} className={`fixed top-0 left-0 h-svh w-72 md:hidden ${scrolled ? "bg-white text-black" : "bg-white text-black"} shadow-xl`} role="dialog" aria-modal="true">
+        <aside ref={sidebarRef} className={`fixed top-0 left-0 h-1/3 w-screen md:hidden ${scrolled ? "bg-white text-black" : "bg-white text-black"} shadow-xl`} role="dialog" aria-modal="true">
           <div className="flex items-center justify-between px-5 py-4 border-b">
             <span className="font-semibold">Menu</span>
             <button aria-label="Close Menu" onClick={() => setIsMenuOpen(false)} className="inline-flex w-8 h-8 items-center justify-center">
@@ -129,10 +133,11 @@ export default function Navbar({ serverSession }) {
           </div>
           <nav className="px-5 py-4">
             <ul className="flex flex-col gap-4 font-semibold">
-              <li><Link href="#" onClick={() => setIsMenuOpen(false)}>About Deepsea</Link></li>
-              <li><Link href="#" onClick={() => setIsMenuOpen(false)}>Product</Link></li>
-              <li><Link href="#" onClick={() => setIsMenuOpen(false)}>Sustainability</Link></li>
-              <li><Link href="#" onClick={() => setIsMenuOpen(false)}>Contact Me</Link></li>
+              <li><Link href="/product" onClick={() => setIsMenuOpen(false)}>Product</Link></li>
+              <li><Link href="/about" onClick={() => setIsMenuOpen(false)}>About Deepsea</Link></li>
+              <li><Link href="/sustainability" onClick={() => setIsMenuOpen(false)}>Sustainability</Link></li>
+              <li><Link href="/contact" onClick={() => setIsMenuOpen(false)}>Contact Me</Link></li>
+              <li className="text-xl"><Link href="/cart" onClick={() => setIsMenuOpen(false)}><IoCartOutline /> Cart</Link></li>
             </ul>
           </nav>
         </aside>
@@ -149,10 +154,11 @@ export default function Navbar({ serverSession }) {
         <Link href="/" className="font-semibold text-xl">DeepSea</Link>
         <div className="nav-link hidden md:block">
           <ul className="flex items-center gap-8 mr-5 font-semibold">
-            <li>About Deepsea</li>
-            <li>Product</li>
-            <li>Sustainability</li>
-            <li>Contact Me</li>
+            <li><Link href={"/about"}>About Deepsea</Link></li>
+            <li><Link href={"/product"}>Product</Link></li>
+            <li><Link href={"/sustainability"}>Sustainability</Link></li>
+            <li><Link href={"/contact"}>Contact</Link></li>
+            <li className="text-xl"><Link href="/cart"><IoCartOutline /></Link></li>
           </ul>
         </div>
         <button
@@ -167,22 +173,21 @@ export default function Navbar({ serverSession }) {
       </div>
       {username ? (
         <div className="hidden md:flex items-center gap-4">
-          <button
-            onClick={handleLogout}
-            className="px-3 py-1 bg-transparent text-red-600 cursor-pointer"
-          >
-            Logout
-          </button>
+          <Link href={"/profile"} className="text-2xl">
+            <CgProfile/>
+          </Link>
         </div>
       ) : (
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center">
           <button className="px-3 py-1 bg-transparent text-white font-semibold cursor-pointer">
-            <Link href="/login">Sign in</Link>
+            <Link href="/login">Login</Link>
           </button>
         </div>
       )}
+      
       <div ref={overlayRef} onClick={() => setIsMenuOpen(false)} className="fixed inset-0 bg-black/40 opacity-0 pointer-events-none md:hidden"></div>
-      <aside ref={sidebarRef} className={`fixed top-0 left-0 h-svh w-72 md:hidden ${scrolled ? "bg-white text-black" : "bg-white text-black"} shadow-xl`} role="dialog" aria-modal="true">
+      
+      <aside ref={sidebarRef} className={`fixed top-1 left-0 w-11/12 md:hidden p-2 ${scrolled ? "bg-white text-black" : "bg-white text-black"} shadow-xl`} role="dialog" aria-modal="true">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <span className="font-semibold">Menu</span>
           <button aria-label="Close Menu" onClick={() => setIsMenuOpen(false)} className="inline-flex w-8 h-8 items-center justify-center">
@@ -191,12 +196,13 @@ export default function Navbar({ serverSession }) {
         </div>
         <nav className="px-5 py-4">
           <ul className="flex flex-col gap-4 font-semibold">
-            <li><Link href="#" onClick={() => setIsMenuOpen(false)}>About Deepsea</Link></li>
-            <li><Link href="#" onClick={() => setIsMenuOpen(false)}>Product</Link></li>
-            <li><Link href="#" onClick={() => setIsMenuOpen(false)}>Sustainability</Link></li>
-            <li><Link href="#" onClick={() => setIsMenuOpen(false)}>Contact Me</Link></li>
+            <li><Link href="/about" onClick={() => setIsMenuOpen(false)}>About Deepsea</Link></li>
+            <li><Link href="/product" onClick={() => setIsMenuOpen(false)}>Product</Link></li>
+            <li><Link href="/sustainability" onClick={() => setIsMenuOpen(false)}>Sustainability</Link></li>
+            <li><Link href="/contact" onClick={() => setIsMenuOpen(false)}>Contact Me</Link></li>
+            <li><Link href="/cart" onClick={() => setIsMenuOpen(false)} className="flex gap-2 items-center"><IoCartOutline />Cart</Link></li>
             {username ? (
-              <li><button onClick={() => { setIsMenuOpen(false); handleLogout(); }} className="text-red-600">Logout</button></li>
+              <li><Link href={"/profile"} onClick={() => { setIsMenuOpen(false); handleLogout(); }} >Profile</Link></li>
             ) : (
               <li><Link href="/login" onClick={() => setIsMenuOpen(false)} >Sign in</Link></li>
             )}
