@@ -1,24 +1,164 @@
+'use client'
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Cookies from "js-cookie";
 
-export default async function ProductDetail({ params }) {
-    const { id } = await params;
-    const session = await getServerSession(authOptions);
+export default function ProductDetail({ params }) {
+    const router = useRouter();
+    const { data: session } = useSession();
+    const resolvedParams = use(params);
+    const [loading, setLoading] = useState(false);
+    const [product, setProduct] = useState(null);
+    const [productLoading, setProductLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [quantity, setQuantity] = useState(1);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${id}`, {
-        cache: "no-store",
-    });
-    const product = await res.json();
-    if (!product) {
-        return <p className="text-center mt-10">Produk tidak ditemukan.</p>;
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const res = await fetch(`/api/product/${resolvedParams.id}`, {
+                    cache: "no-store",
+                });
+                const productData = await res.json();
+                
+                if (!productData || res.status === 404) {
+                    setError("Produk tidak ditemukan");
+                } else {
+                    setProduct(productData);
+                }
+            } catch (err) {
+                console.error("Error fetching product:", err);
+                setError("Gagal memuat produk");
+            } finally {
+                setProductLoading(false);
+            }
+        };
+
+        fetchProduct();
+    }, [resolvedParams.id]);
+
+    // Fungsi untuk mengatur quantity
+    const increaseQuantity = () => {
+        setQuantity(prev => prev + 1);
+    };
+
+    const decreaseQuantity = () => {
+        if (quantity > 1) {
+            setQuantity(prev => prev - 1);
+        }
+    };
+
+    const handleAddToCart = async () => {
+        // Cek apakah user sudah login (NextAuth atau JWT)
+        const isNextAuthLoggedIn = session?.user?.id_user;
+        const jwtToken = Cookies.get("access_token");
+        
+        if (!isNextAuthLoggedIn && !jwtToken) {
+            alert("Silakan login terlebih dahulu!");
+            router.push("/login");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await fetch("/api/cart/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id_produk: product.id_produk,
+                    jumlah_pembelian: quantity,
+                    harga_satuan: product.harga_kg,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || "Gagal menambahkan ke keranjang");
+            alert("Produk berhasil ditambahkan ke keranjang!");
+        } catch (err) {
+            console.error(err);
+            alert(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOrderNow = async () => {
+        // Cek apakah user sudah login (NextAuth atau JWT)
+        const isNextAuthLoggedIn = session?.user?.id_user;
+        const jwtToken = Cookies.get("access_token");
+        
+        if (!isNextAuthLoggedIn && !jwtToken) {
+            alert("Silakan login terlebih dahulu!");
+            router.push("/login");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // Tambahkan produk ke keranjang dulu
+            const res = await fetch("/api/cart/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id_produk: product.id_produk,
+                    jumlah_pembelian: quantity,
+                    harga_satuan: product.harga_kg,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || "Gagal menambahkan ke keranjang");
+            
+            // Redirect ke payment page
+            router.push("/payment");
+        } catch (err) {
+            console.error(err);
+            alert(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (productLoading) {
+        return (
+            <div className="flex h-screen w-full justify-center items-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Memuat produk...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !product) {
+        return (
+            <div className="flex h-screen w-full justify-center items-center">
+                <div className="text-center">
+                    <p className="text-red-600 text-lg">{error || "Produk tidak ditemukan"}</p>
+                    <button 
+                        onClick={() => router.push("/product")}
+                        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+                    >
+                        Kembali ke Daftar Produk
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     return (
         <>
-        <Navbar textColor="text-black" serverSession={session}/>
+        <Navbar textColor="text-black"/>
             <div className="min-h-screen flex flex-col items-center justify-center py-10 px-6">
                 <div className="max-w-4xl w-full bg-white rounded-2xl shadow-lg overflow-hidden">
                     <div className="flex flex-col md:flex-row">
@@ -38,10 +178,30 @@ export default async function ProductDetail({ params }) {
                                 <p className="text-2xl font-semibold text-blue-600">
                                     Rp {product.harga_kg.toLocaleString()} / kg
                                 </p>
+                                <p className="text-lg font-medium text-green-600">
+                                    Total: Rp {(product.harga_kg * quantity).toLocaleString()}
+                                </p>
+                            </div>
+                            <div className="flex gap-3 items-center">
+                                <p className="text-gray-600">Quantity:</p>
+                                <button 
+                                    onClick={decreaseQuantity}
+                                    disabled={quantity <= 1}
+                                    className="px-3 text-2xl bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                                >
+                                    -
+                                </button>
+                                <p className="px-4 py-2 bg-gray-100 rounded min-w-12 text-center">{quantity}</p>
+                                <button 
+                                    onClick={increaseQuantity}
+                                    className="px-3 text-2xl bg-gray-200 hover:bg-gray-300 rounded"
+                                >
+                                    +
+                                </button>
                             </div>
                             <div className="flex gap-5 items-end w-full">
-                                <button className="mt-6 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Add to Cart</button>
-                                <button className="mt-6 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Order Now</button>
+                                <button onClick={handleAddToCart} disabled={loading} className="mt-6 bg-gray-200 text-blue-800 py-2 px-8 rounded-sm border border-blue-800 transition disabled:opacity-50">{loading ? "Adding..." : "Add To Cart"}</button>
+                                <button onClick={handleOrderNow} disabled={loading} className="mt-6 bg-blue-800 text-white py-2 px-8 rounded-sm hover:bg-blue-900 transition disabled:opacity-50">{loading ? "Processing..." : "Order Now"}</button>
                             </div>
                         </div>
                     </div>

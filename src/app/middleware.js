@@ -55,7 +55,8 @@ export async function middleware(req) {
 export const config = {
   matcher: [
     "/dashboard/:path*", // proteksi halaman dashboard
-    "/profile/:path*",   // contoh tambahan
+    "/profile",          // proteksi halaman profile
+    "/profile/:path*",   // proteksi sub-halaman profile
     "/transaksi/:path*",
   ],
 };

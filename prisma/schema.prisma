@@ -15,12 +15,6 @@ model jasa_pengirim {
   transaksi        transaksi[]
 }
 
-model kategori {
-  id_kategori   Int      @id @default(autoincrement())
-  nama_kategori String   @db.VarChar(100)
-  produk        produk[]
-}
-
 model keranjang {
   id_keranjang     Int    @id @default(autoincrement())
   id_user          Int
@@ -36,15 +30,13 @@ model keranjang {
 
 model produk {
   id_produk   Int         @id @default(autoincrement())
-  id_kategori Int
   nama_produk String      @db.VarChar(100)
   stok_kg     Int?        @default(0)
   harga_kg    Int
   deskripsi   String?     @db.Text
+  status      String?     @db.VarChar(50)    
+  gambar      String?     @db.VarChar(255)   
   keranjang   keranjang[]
-  kategori    kategori    @relation(fields: [id_kategori], references: [id_kategori], onDelete: NoAction, onUpdate: NoAction, map: "produk_ibfk_1")
-
-  @@index([id_kategori], map: "id_kategori")
 }
 
 model transaksi {
@@ -53,6 +45,8 @@ model transaksi {
   id_pengiriman    Int
   metode_transaksi transaksi_metode_transaksi?
   tgl_transaksi    DateTime?                   @default(now()) @db.Timestamp(0)
+  status_transaksi String?                     @default("pending") @db.VarChar(50)
+
   users            users                       @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "transaksi_ibfk_1")
   jasa_pengirim    jasa_pengirim               @relation(fields: [id_pengiriman], references: [id_pengiriman], onDelete: NoAction, onUpdate: NoAction, map: "transaksi_ibfk_2")
 
