@@ -49,7 +49,6 @@ model transaksi {
 
   users            users                       @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction, map: "transaksi_ibfk_1")
   jasa_pengirim    jasa_pengirim               @relation(fields: [id_pengiriman], references: [id_pengiriman], onDelete: NoAction, onUpdate: NoAction, map: "transaksi_ibfk_2")
-  detail_transaksi detail_transaksi[]
 
   @@index([id_pengiriman], map: "id_pengiriman")
   @@index([id_user], map: "id_user")
